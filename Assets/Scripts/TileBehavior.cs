@@ -9,6 +9,8 @@ public class TileBehavior : MonoBehaviour
             // From the GridManager class in 
             FindFirstObjectByType<GridManager>().OnTileStepped(this.gameObject);
             Debug.Log("Player has stepped on tile: " + this.name);
+
+
         }
     }
 }

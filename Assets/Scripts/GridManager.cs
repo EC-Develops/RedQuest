@@ -16,12 +16,12 @@ public class GridManager : MonoBehaviour
     public GameObject firstRow;
     
     // Colors
-    [FormerlySerializedAs("customColor")] public Material correctColor;
+    public Material correctColor;
     public Material wrongColor;
     public Material defaultColor;
     
     // Player step tracking
-    private int currentStepIndex = 0;
+    public int currentStepIndex = 0;
     private bool pathVisible = false;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -93,6 +93,10 @@ public class GridManager : MonoBehaviour
             tile.GetComponent<Renderer>().material = defaultColor;
         }
         
+        // Turn off the TriggerTile
+        startupTile.GetComponent<Renderer>().material = defaultColor;
+        
+        hasStarted = false; // Make has started false so player can step on triggerTile again
         pathVisible = false;
     }
 
@@ -139,6 +143,8 @@ public class GridManager : MonoBehaviour
         {
             tile.GetComponent<Renderer>().material = defaultColor;
         }
-
+        
+        // Resets the current step count to start over at the first correct tile
         currentStepIndex = 0;
-    }}
+    }
+}
