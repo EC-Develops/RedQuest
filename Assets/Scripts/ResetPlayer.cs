@@ -9,26 +9,26 @@ public class ResetPlayer : MonoBehaviour
     // Fade sequence variables
     public Image fadeImage;           
     public float fadeDuration = 1f;   // Time to fade in/out
-    public float holdDuration = 1f;   // Time to stay black
+    public float holdDuration = 0.5f;   // Time to stay black
 
     // Allows the whole function to be called outside this script
     public void TryAgain()
     {
+        Debug.Log("Fade sequence commencing");
         StartCoroutine(FadeSequence());
-        // move player to Start
-        player.transform.position = new Vector3(0.5f, 0f, 6f);
     }
 
 
     public IEnumerator FadeSequence()
     {
 
-        // Fade to Black
+        // 1) Fade to Black
         yield return StartCoroutine(Fade(0f, 1f, fadeDuration));
-
+        // 2) Move player to start while screen is black
+        player.transform.position = new Vector3(0.5f, 0f, 6f);
+        // 3) Wait while screen is black
         yield return new WaitForSeconds(holdDuration);
-
-        // Fade back out
+        // 4) Fade back in
         yield return StartCoroutine(Fade(1f, 0f, fadeDuration));
     }
 
