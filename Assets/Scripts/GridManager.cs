@@ -12,25 +12,29 @@ public class GridManager : MonoBehaviour
     public List<GameObject> allTiles = new List<GameObject>();
     // Path of tiles added in a list within Unity inspector
     public List<GameObject> pathTiles = new List<GameObject>();
-    
+
     public GameObject firstRow;
-    
+
     // Colors
     public Material correctColor;
     public Material wrongColor;
     public Material defaultColor;
-    
+
     // Player step tracking
     public int currentStepIndex = 0;
-    private bool pathVisible = false;
-    
+
+    // While pathVisible = true, the player cannot step on any grid tiles
+    private bool pathVisible = true;
+
+    private Coroutine lightUpCoroutine;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         // Populate the master list by the "Tile" tag
         allTiles.AddRange(GameObject.FindGameObjectsWithTag("Tile"));
         Debug.Log("All tiles loaded: " + allTiles.Count);
-        
+
         GeneratePath(5);
     }
 
@@ -40,7 +44,7 @@ public class GridManager : MonoBehaviour
         if (!hasStarted && startupTile.GetComponent<Renderer>().material.color == Color.green)
         {
             hasStarted = true;
-            StartCoroutine(LightUpSequence());
+            lightUpCoroutine = StartCoroutine(LightUpSequence());
         }
     }
 
@@ -50,34 +54,34 @@ public class GridManager : MonoBehaviour
     void GeneratePath(int pathLength)
     {
         pathTiles.Clear();
-        
+
         // Pick the 1st tile from the first row
         int randomIndex = Random.Range(0, firstRow.transform.childCount);
         Transform currentTileTransform = firstRow.transform.GetChild(randomIndex);
         GameObject currentTile = currentTileTransform.gameObject;
         pathTiles.Add(currentTile);
         Debug.Log("First tile added: " + currentTile.name);
-        
+
         // Get the next tiles from possibleChoices
         for (int i = 1; i < pathLength; i++)
         {
             PossibleChoices possibleChoices = currentTile.GetComponent<PossibleChoices>();
-            
+
             GameObject nextTile = possibleChoices.RandomSelection();
-            
+
             pathTiles.Add(nextTile);
             Debug.Log("Next Tile : " + nextTile.name);
 
             currentTile = nextTile;
         }
     }
-    
-    IEnumerator LightUpSequence()
+
+    public IEnumerator LightUpSequence()
     {
         yield return new WaitForSeconds(1.0f); // short delay before lighting up the first tile
 
         pathVisible = true;
-        
+
         // Light up each tile desired in order w/ delay
         foreach (GameObject tile in pathTiles)
         {
@@ -92,10 +96,10 @@ public class GridManager : MonoBehaviour
         {
             tile.GetComponent<Renderer>().material = defaultColor;
         }
-        
+
         // Turn off the TriggerTile
         startupTile.GetComponent<Renderer>().material = defaultColor;
-        
+
         hasStarted = false; // Make has started false so player can step on triggerTile again
         pathVisible = false;
     }
@@ -104,7 +108,7 @@ public class GridManager : MonoBehaviour
     public void OnTileStepped(GameObject tile)
     {
         if (pathVisible) return; //Prevent input during path display
-        
+
         // Ignore the startup tile, especially when initiating the game
         if (tile == startupTile)
         {
@@ -143,8 +147,36 @@ public class GridManager : MonoBehaviour
         {
             tile.GetComponent<Renderer>().material = defaultColor;
         }
-        
+
         // Resets the current step count to start over at the first correct tile
         currentStepIndex = 0;
+    }
+
+    // Reset the light up sequence
+    public void StopLightUpSequence()
+    {
+        if (lightUpCoroutine != null)
+        {
+            StopCoroutine(lightUpCoroutine);
+            lightUpCoroutine = null;
+        }
+    }
+
+    public void ResetGrid()
+    {
+
+        if (pathVisible == false) // Only allows for a grid reset outside of an ongoing light up
+        {
+            StopLightUpSequence();
+            hasStarted = false;
+            currentStepIndex = 0;
+
+            foreach (GameObject tile in allTiles)
+            {
+                tile.GetComponent<Renderer>().material = defaultColor;
+            }
+
+            startupTile.GetComponent<Renderer>().material = defaultColor;
+        }
     }
 }
