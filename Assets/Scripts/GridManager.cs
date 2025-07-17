@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+using UnityEngine.XR.Interaction.Toolkit.Inputs;
+
 public class GridManager : MonoBehaviour
 {
+    // Calling other scripts
+    private ResetPlayer resetPlayer;
+
     public GameObject startupTile;
     private bool hasStarted = false;
 
@@ -28,9 +33,20 @@ public class GridManager : MonoBehaviour
 
     private Coroutine lightUpCoroutine;
 
+    // Player & components
+    public GameObject player;
+    public Rigidbody rb;
+    public CharacterController cC;
+    public InputActionManager inputActionManager;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        resetPlayer = GetComponent<ResetPlayer>();
+        rb = player.GetComponent<Rigidbody>();
+        cC = player.GetComponent<CharacterController>();
+        inputActionManager = player.GetComponent<InputActionManager>();
+
         // Populate the master list by the "Tile" tag
         allTiles.AddRange(GameObject.FindGameObjectsWithTag("Tile"));
         Debug.Log("All tiles loaded: " + allTiles.Count);
@@ -140,9 +156,17 @@ public class GridManager : MonoBehaviour
     // If an incorrect tile is stepped on, show red(^) on the
     // incorrect tile and reset all the tiles back to the default color
     IEnumerator ResetAfterDelay()
-    {
-        yield return new WaitForSeconds(1.5f); // Let the red sit
+    {        
+        yield return StartCoroutine(WaitUntilGrounded());
+        cC.enabled = false;
+        SetTeleportationAreasEnabled(false);
 
+        yield return new WaitForSeconds(1.0f); // Let the red sit
+
+        // Fades screen and resets player position
+        resetPlayer.TryAgain();
+
+        // Change all tiles to default color
         foreach (GameObject tile in allTiles)
         {
             tile.GetComponent<Renderer>().material = defaultColor;
@@ -150,6 +174,8 @@ public class GridManager : MonoBehaviour
 
         // Resets the current step count to start over at the first correct tile
         currentStepIndex = 0;
+        cC.enabled = true;
+        SetTeleportationAreasEnabled(true);
     }
 
     // Reset the light up sequence
@@ -161,6 +187,33 @@ public class GridManager : MonoBehaviour
             lightUpCoroutine = null;
         }
     }
+
+    void SetTeleportationAreasEnabled(bool enabled)
+    {
+        UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea[] areas = FindObjectsOfType<UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation.TeleportationArea>();
+    
+        foreach (var area in areas)
+        {
+            area.enabled = enabled;
+        }
+    }
+
+    IEnumerator WaitUntilGrounded()
+    {
+        while (!IsGrounded())
+        {
+            yield return null; // wait for next frame
+        }
+    }
+
+    bool IsGrounded()
+    {
+        // Raycast down from player position a short distance to detect ground
+        float rayDistance = 0.2f;
+        return Physics.Raycast(player.transform.position, Vector3.down, rayDistance);
+    }
+
+
 
     public void ResetGrid()
     {
