@@ -164,7 +164,7 @@ public class GridManager : MonoBehaviour
         yield return new WaitForSeconds(1.0f); // Let the red sit
 
         // Fades screen and resets player position
-        resetPlayer.TryAgain();
+        yield return StartCoroutine(resetPlayer.TryAgain());
 
         // Change all tiles to default color
         foreach (GameObject tile in allTiles)
@@ -174,6 +174,8 @@ public class GridManager : MonoBehaviour
 
         // Resets the current step count to start over at the first correct tile
         currentStepIndex = 0;
+
+        // Restore movement
         cC.enabled = true;
         SetTeleportationAreasEnabled(true);
     }
