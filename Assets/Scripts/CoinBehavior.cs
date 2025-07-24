@@ -10,9 +10,13 @@ public class CoinBehavior : MonoBehaviour
     [SerializeField]
     private float rotationSpeed = 1f;
 
-    private Vector3 endSpot = new Vector3(0.45f, 0.2f, -4.69f);
+    private Vector3 endSpot = new Vector3(0.45f, 0.29f, -4.69f);
     private float bounceHeight = 1f;
     private float bounceDuration = 1f;
+    
+    //Audios
+    public AudioClip coinSound;
+
 
     void Start()
     {
@@ -25,6 +29,7 @@ public class CoinBehavior : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            AudioSource.PlayClipAtPoint(coinSound, transform.position);// Play coin sound
             Debug.Log("The game was won! Congrats");
             // Disable the coin (this object)
             gameObject.SetActive(false);
