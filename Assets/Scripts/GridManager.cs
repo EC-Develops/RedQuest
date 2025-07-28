@@ -1,9 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
-
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 
 public class GridManager : MonoBehaviour
 {
@@ -24,6 +23,12 @@ public class GridManager : MonoBehaviour
     public Material correctColor;
     public Material wrongColor;
     public Material defaultColor;
+    
+    //Audios
+    public AudioClip correctSound;
+    public AudioClip wrongSound;
+    public AudioClip tileLightUpSound;
+    public AudioClip tileResetSound;
 
     // Player step tracking
     public int currentStepIndex = 0;
@@ -60,6 +65,7 @@ public class GridManager : MonoBehaviour
         if (!hasStarted && startupTile.GetComponent<Renderer>().material.color == Color.green)
         {
             hasStarted = true;
+            AudioSource.PlayClipAtPoint(correctSound, transform.position);// Play correct sound
             lightUpCoroutine = StartCoroutine(LightUpSequence());
         }
     }
@@ -102,6 +108,7 @@ public class GridManager : MonoBehaviour
         foreach (GameObject tile in pathTiles)
         {
             tile.GetComponent<Renderer>().material = correctColor;
+            AudioSource.PlayClipAtPoint(tileLightUpSound, transform.position);// Play light up sound
             yield return new WaitForSeconds(1.0f); // short delay for memory effect
         }
 
@@ -112,6 +119,7 @@ public class GridManager : MonoBehaviour
         {
             tile.GetComponent<Renderer>().material = defaultColor;
         }
+        AudioSource.PlayClipAtPoint(tileResetSound, transform.position);// Play reset sound
 
         // Turn off the TriggerTile
         startupTile.GetComponent<Renderer>().material = defaultColor;
@@ -136,11 +144,20 @@ public class GridManager : MonoBehaviour
         if (tile == pathTiles[currentStepIndex])
         {
             Debug.Log("correct tile: Step" + currentStepIndex);
-            tile.GetComponent<Renderer>().material = correctColor;
+            AudioSource.PlayClipAtPoint(correctSound, transform.position);// Play correct sound
+            tile.GetComponent<Renderer>().material = correctColor; // Change color to yellow if correct
             currentStepIndex++;
 
-            if (currentStepIndex >= pathTiles.Count)
+            if (currentStepIndex >= pathTiles.Count) // Completed path
             {
+                // Enable teleportation on the exit floor
+                GameObject[] exitFloor = GameObject.FindGameObjectsWithTag("ExitFloor");
+                
+                foreach (GameObject floor in exitFloor)
+                {
+                    floor.GetComponent<TeleportationArea>().enabled = true;
+                }                
+                
                 Debug.Log("Player completed the path!");
             }
         }
@@ -148,6 +165,7 @@ public class GridManager : MonoBehaviour
         else
         {
             Debug.Log("Wrong Tile, resetting.");
+            AudioSource.PlayClipAtPoint(wrongSound, transform.position);// Play wrong sound
             tile.GetComponent<Renderer>().material = wrongColor; // Show red
             StartCoroutine(ResetAfterDelay());
         }
@@ -164,7 +182,7 @@ public class GridManager : MonoBehaviour
         yield return new WaitForSeconds(1.0f); // Let the red sit
 
         // Fades screen and resets player position
-        resetPlayer.TryAgain();
+        yield return StartCoroutine(resetPlayer.TryAgain());
 
         // Change all tiles to default color
         foreach (GameObject tile in allTiles)
@@ -174,6 +192,8 @@ public class GridManager : MonoBehaviour
 
         // Resets the current step count to start over at the first correct tile
         currentStepIndex = 0;
+
+        // Restore movement
         cC.enabled = true;
         SetTeleportationAreasEnabled(true);
     }

@@ -1,53 +1,28 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class ResetPlayer : MonoBehaviour
 {
     public GameObject player;
 
     // Fade sequence variables
-    public Image fadeImage;           
-    public float fadeDuration = 1f;   // Time to fade in/out
-    public float holdDuration = 1f;   // Time to stay black
+    public Image fadeImage;
+    public float fadeDuration = 1.0f; // Time to fade in/out
 
-    // Allows the whole function to be called outside this script
-    public void TryAgain()
+    public IEnumerator TryAgain()
     {
-        StartCoroutine(FadeSequence());
-        // move player to Start
+        Debug.Log("Fade sequence commencing");
+        // 1) Fade to black (alpha = 1)
+        yield return fadeImage.DOFade(1.0f, fadeDuration).WaitForCompletion();
+        // 2) Move player
         player.transform.position = new Vector3(0.5f, 0f, 6f);
-    }
 
+        // 3) Hold while black
+        yield return new WaitForSeconds(1.0f);
 
-    public IEnumerator FadeSequence()
-    {
-
-        // Fade to Black
-        yield return StartCoroutine(Fade(0f, 1f, fadeDuration));
-
-        yield return new WaitForSeconds(holdDuration);
-
-        // Fade back out
-        yield return StartCoroutine(Fade(1f, 0f, fadeDuration));
-    }
-
-    IEnumerator Fade(float startAlpha, float endAlpha, float duration)
-    {
-        float elapsed = 0f;
-        Color color = fadeImage.color;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
-            color.a = alpha;
-            fadeImage.color = color;
-            yield return null;
-        }
-
-        // Ensure final alpha
-        color.a = endAlpha;
-        fadeImage.color = color;
+        // 4) Fade back to transparent (alpha = 0)
+        yield return fadeImage.DOFade(0f, fadeDuration);
     }
 }
