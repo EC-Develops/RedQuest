@@ -1,2 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+Assets/AI/Models/decoder_model.onnx filter=lfs diff=lfs merge=lfs -text
+Assets/AI/Models/decoder_with_past_model.onnx filter=lfs diff=lfs merge=lfs -text
