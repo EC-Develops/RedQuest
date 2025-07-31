@@ -126,11 +126,13 @@ public class RunWhisperMicrophone : MonoBehaviour
         if (micClip == null || !Microphone.IsRecording(null))
             return;
         
-        if (Input.GetKeyDown(KeyCode.Space) && !isRecording && !isTranscribing)
+        // Change the button to Start Recording
+        if (Input.GetKeyDown(KeyCode.X) && !isRecording && !isTranscribing)
         {
             StartRecording();
         }
-        else if (Input.GetKeyUp(KeyCode.Space) && isRecording)
+        // Change the button to End Recording
+        else if (Input.GetKeyUp(KeyCode.X) && isRecording)
         {
             StopRecording();
         }
@@ -607,7 +609,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         
         if (!isRecording && !isTranscribing)
         {
-            if (GUILayout.Button("Start Recording (or hold Space)"))
+            if (GUILayout.Button("Start Recording (or hold X)"))
             {
                 StartRecording();
             }
@@ -635,7 +637,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         }
         
         GUILayout.Space(10);
-        GUILayout.Label("Hold SPACE to record, or use the button above");
+        GUILayout.Label("Hold X to record, or use the button above");
         GUILayout.Label("Adjust recording duration in inspector");
         
         GUILayout.EndArea();

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.InferenceEngine;
 using UnityEngine;
@@ -7,9 +8,8 @@ public class RunJets : MonoBehaviour
 {
     public ModelAsset modelAsset;
     public TextAsset phonemeAsset;
-    public string inputText = "Once upon a time, there lived a girl called Alice. She lived in a house in the woods.";
-    //string inputText = "The quick brown fox jumped over the lazy dog";
-    //string inputText = "There are many uses of the things she uses!";
+    public Action OnSpeakComplete;
+    public string inputText = "Welcome to Mind Tiles!";
 
     //Set to true if we have put the phoneme_dict.txt in the Assets/StreamingAssets folder
     bool hasPhenomeDictionary = true;
@@ -49,8 +49,9 @@ public class RunJets : MonoBehaviour
         worker = new Worker(model, BackendType.GPUCompute);
     }
 
-    void TextToSpeech()
+    public void TextToSpeech()
     {
+        Debug.Log("Playing speech.");
         string ptext;
         if (hasPhenomeDictionary)
         {
@@ -185,11 +186,21 @@ public class RunJets : MonoBehaviour
             audioSource.clip = clip;
             audioSource.Play();
             Debug.Log("Playing Audio Clip");
+            StartCoroutine(WatchForEnd(audioSource));
         }
         else
         {
             Debug.Log("There is no audio source found on this Gameobject");
         }
+    }
+
+    IEnumerator WatchForEnd(AudioSource src)
+    {
+        // wait until it starts plaiying (in case there's a tiny delay)
+        yield return new WaitUntil(() => src.isPlaying);
+        // then wait until it stops
+        yield return new WaitWhile(() => src.isPlaying);
+        OnSpeakComplete?.Invoke();
     }
 
     void Update()
