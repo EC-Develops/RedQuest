@@ -6001,9 +6001,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   whisper: {fileID: 1198855896}
-  keywords:
-  - upbeat music
-  singleTriggerPerTranscript: 0
+  singleTriggerPerTranscript: 1
   runJets: {fileID: 1198855897}
   idleFace: {fileID: 1273580911}
   talkingFace: {fileID: 316335673}

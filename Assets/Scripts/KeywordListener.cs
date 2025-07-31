@@ -9,30 +9,36 @@ public class KeywordListener : MonoBehaviour
     [Header("Whisper Source")]
     public RunWhisperMicrophone whisper; // assign in inspector or auto-find
 
-    [Header("Keywords")]
-    public List<string> keywords = new List<string> { "upbeat music" };
-
     [Header("Settings")]
     [Tooltip("If true, will only trigger once per completed transcription until manually reset.")]
     public bool singleTriggerPerTranscript = true;
 
     [Header("Sound Player")]
-    public RunJets runJets;
+    public RunJets runJets; // TTS engine to speak responses
 
     [Header("Player Faces")]
-    public GameObject idleFace;
-    public GameObject talkingFace;
+    public GameObject idleFace;    // face when avatar is idle
+    public GameObject talkingFace; // face when avatar is speaking
+
+    // keyword -> prewritten response mapping; each keyword is unique to a player line
+    private readonly Dictionary<string, string> responseMap = new()
+    {
+        { "upbeat music", "This test worked. UBOIKULSRBDVOIUSGR"},
+        { "you", "Hello, I'm Victor E! I'm here to play this game with you!" },
+        { "play", "Step on the tile in front of you, then memorize the path and walk across to the coin." },
+        { "happened", "You messed up on the fourth tile. Try again and focus on the last two steps!" }
+    };
 
     // Tracks which keywords have already fired for the current transcript
     private HashSet<string> triggeredThisTranscript = new();
 
     // Example events you can hook into via inspector/other scripts:
-    public Action<string> OnKeywordDetected; // passes the matched keyword
-    public Action<string> OnTranscriptReceived; // full transcript
+    public Action<string> OnKeywordDetected;      // passes the matched keyword
+    public Action<string> OnTranscriptReceived;   // full transcript
 
     void Reset()
     {
-        // Auto-assign whisper if on same GameObject
+        // Auto-assign whisper if the component is on the same GameObject
         whisper = GetComponent<RunWhisperMicrophone>();
     }
 
@@ -64,7 +70,7 @@ public class KeywordListener : MonoBehaviour
 
     void OnDestroy()
     {
-        // Clean up subscriptions
+        // Clean up subscriptions to avoid leaks
         if (whisper != null)
             whisper.OnTranscriptionComplete -= HandleTranscriptionComplete;
         if (runJets != null)
@@ -79,26 +85,36 @@ public class KeywordListener : MonoBehaviour
         OnTranscriptReceived?.Invoke(transcript);
         Debug.Log($"KeywordListener received transcript: '{transcript}'");
 
-        foreach (var kw in keywords)
+        // Loop through each keyword-response pair to see if any trigger
+        foreach (var kv in responseMap)
         {
-            if (singleTriggerPerTranscript && triggeredThisTranscript.Contains(kw))
+            string keyword = kv.Key;
+            string response = kv.Value;
+
+            if (singleTriggerPerTranscript && triggeredThisTranscript.Contains(keyword))
                 continue;
 
-            if (ContainsWholeWord(transcript, kw))
+            if (ContainsWholeWord(transcript, keyword))
             {
-                Debug.Log($"Keyword '{kw}' detected in transcript."); 
-                OnKeywordDetected?.Invoke(kw);
+                Debug.Log($"Keyword '{keyword}' detected in transcript.");
+                OnKeywordDetected?.Invoke(keyword);
 
                 // Turn Off Idle Face
                 idleFace?.SetActive(false);
                 // Turn on Talking Face
                 talkingFace?.SetActive(true);
 
-                // Trigger TTS playback
-                runJets?.TextToSpeech();
+                // Set the prewritten response and speak it
+                if (runJets != null)
+                {
+                    runJets.inputText = response; // overwrite TTS input with mapped response
+                    runJets.TextToSpeech();
+                }
 
                 if (singleTriggerPerTranscript)
-                    triggeredThisTranscript.Add(kw);
+                    triggeredThisTranscript.Add(keyword);
+
+                break; // only handle one keyword per transcription (remove if multiple allowed)
             }
         }
     }
@@ -114,7 +130,7 @@ public class KeywordListener : MonoBehaviour
         if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(word))
             return false;
 
-        // Case-insensitive whole-word match using word boundaries
+        // Case-insensitive whole-word match using word boundaries so "apple" doesn't match "pineapple"
         var pattern = $@"\b{Regex.Escape(word)}\b";
         return Regex.IsMatch(text, pattern, RegexOptions.IgnoreCase);
     }
