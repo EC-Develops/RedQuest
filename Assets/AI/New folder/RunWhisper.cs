@@ -516,7 +516,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         Debug.Log($"=== TRANSCRIPTION COMPLETE === Result: '{outputString.Trim()}'");
         OnTranscriptionComplete?.Invoke(outputString.Trim());
         
-         
+        
         if (tokensTensor != null)
         {
             tokensTensor.Dispose();
