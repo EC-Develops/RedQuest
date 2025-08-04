@@ -5193,7 +5193,7 @@ MonoBehaviour:
   enablePipeline: 1
   debugOutput: 1
   enable_GPT: 1
-  apiKey: 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
+  apiKey: ENTER-KEY-HERE
   model: gpt-4o-mini
 --- !u!95 &1093216217
 Animator:
