@@ -4752,6 +4752,11 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
+--- !u!4 &1000282531 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2218496723442559053, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
+  m_PrefabInstance: {fileID: 990426342}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1006927501
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5150,6 +5155,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 439968197971259357, guid: 7c87c77e24344db44af20c4872109381, type: 3}
   m_PrefabInstance: {fileID: 1906440650}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1093216214 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5005677153021145635, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
+  m_PrefabInstance: {fileID: 1657312182}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1093216215 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5005677153021145634, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
+  m_PrefabInstance: {fileID: 1657312182}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1093216216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093216214}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd1c75d6278cf44708da93c5fea89c0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  whisperMicrophone: {fileID: 1198855896}
+  textToSpeech: {fileID: 1198855897}
+  spriteAnimator: {fileID: 1093216217}
+  spriteTransform: {fileID: 1093216215}
+  playerTransform: {fileID: 1000282531}
+  walkSpeed: 2
+  stopDistance: 2
+  idleBooleanName: Idle_Bool
+  walkBooleanName: Walking_Bool
+  talkBooleanName: Talking_Bool
+  silenceThreshold: 0.01
+  silenceFrames: 120
+  silenceCheckInterval: 0.1
+  enablePipeline: 1
+  debugOutput: 1
+  enable_GPT: 1
+  apiKey: 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
+  model: gpt-4o-mini
+--- !u!95 &1093216217
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093216214}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 118c76d3359314faaa17aa01107d0209, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1001 &1093856706
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8098,6 +8165,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1449360219328934018, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 118c76d3359314faaa17aa01107d0209, type: 2}
     - target: {fileID: 1722265182094073777, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -8255,7 +8326,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3542388506074205375, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
       insertIndex: 1
       addedObject: {fileID: 316335674}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5005677153021145635, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1093216217}
+    - targetCorrespondingSourceObject: {fileID: 5005677153021145635, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1093216216}
   m_SourcePrefab: {fileID: 100100000, guid: bc2b234c7b4d76d49a003bb63879f1c5, type: 3}
 --- !u!1 &1658440549
 GameObject:
