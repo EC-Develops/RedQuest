@@ -60,7 +60,7 @@ public class KeywordListener : MonoBehaviour
         // Hook into RunJets completion so we can swap face back when speaking is done
         if (runJets != null)
         {
-            runJets.OnSpeakComplete += HandleSpeakComplete;
+            //runJets.OnSpeakComplete += HandleSpeakComplete;
         }
         else
         {
@@ -73,8 +73,8 @@ public class KeywordListener : MonoBehaviour
         // Clean up subscriptions to avoid leaks
         if (whisper != null)
             whisper.OnTranscriptionComplete -= HandleTranscriptionComplete;
-        if (runJets != null)
-            runJets.OnSpeakComplete -= HandleSpeakComplete;
+        //if (runJets != null)
+            //runJets.OnSpeakComplete -= HandleSpeakComplete;
     }
 
     void HandleTranscriptionComplete(string transcript)
