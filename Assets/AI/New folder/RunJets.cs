@@ -203,13 +203,13 @@ public class RunJets : MonoBehaviour
         OnSpeakComplete?.Invoke();
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            TextToSpeech();
-        }
-    }
+    //void Update()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Space))
+    //    {
+    //        TextToSpeech();
+    //    }
+    //}
 
     void OnDestroy()
     {

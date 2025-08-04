@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Unity.InferenceEngine;
 using System.Text;
 using Unity.Collections;
@@ -9,6 +10,10 @@ using System.Collections;
 
 public class RunWhisperMicrophone : MonoBehaviour
 {
+    [Header("VR Input")]
+    public InputActionReference leftPrimaryButtonAction;
+    private bool primaryButtonHeld = false;
+        
     [Header("Audio Settings")]
     public int sampleRate = 16000;
     public float recordingDuration = 10.0f; 
@@ -121,21 +126,59 @@ public class RunWhisperMicrophone : MonoBehaviour
         lastMicPosition = Microphone.GetPosition(null);
     }
         
+    private void OnEnable()
+    {
+        if (leftPrimaryButtonAction != null)
+        {
+            leftPrimaryButtonAction.action.Enable();
+            leftPrimaryButtonAction.action.performed += OnPrimaryPressed;
+            leftPrimaryButtonAction.action.canceled += OnPrimaryReleased;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (leftPrimaryButtonAction != null)
+        {
+            leftPrimaryButtonAction.action.performed -= OnPrimaryPressed;
+            leftPrimaryButtonAction.action.canceled -= OnPrimaryReleased;
+            leftPrimaryButtonAction.action.Disable();
+        }
+    }
+
+    private void OnPrimaryPressed(InputAction.CallbackContext ctx)
+    {
+        if (!isRecording && !isTranscribing)
+        {
+            StartRecording();
+            primaryButtonHeld = true;
+        }
+    }
+
+    private void OnPrimaryReleased(InputAction.CallbackContext ctx)
+    {
+        if (isRecording)
+        {
+            StopRecording();
+            primaryButtonHeld = false;
+        }
+    }
+    
     void Update()
     {
         if (micClip == null || !Microphone.IsRecording(null))
             return;
         
         // Change the button to Start Recording
-        if (Input.GetKeyDown(KeyCode.X) && !isRecording && !isTranscribing)
-        {
-            StartRecording();
-        }
+        //if (Input.GetKeyDown(KeyCode.X) && !isRecording && !isTranscribing)
+        //{
+        //    StartRecording();
+        //}
         // Change the button to End Recording
-        else if (Input.GetKeyUp(KeyCode.X) && isRecording)
-        {
-            StopRecording();
-        }
+        //else if (Input.GetKeyUp(KeyCode.X) && isRecording)
+        ///{
+        //    StopRecording();
+        //}
         
         if (isRecording && Time.time - recordingStartTime >= recordingDuration)
         {

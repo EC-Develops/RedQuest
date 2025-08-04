@@ -349,7 +349,7 @@
                     "name": "Is Tracked",
                     "type": "Button",
                     "id": "82eb6741-beef-48d3-83ab-a957dc1caa1e",
-                    "expectedControlType": "",
+                    "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -452,15 +452,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
-                },
-                {
-                    "name": "LeftXButton",
-                    "type": "Button",
-                    "id": "ee0ba85e-c69d-4cd2-9bc0-7551f4e69cf4",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -870,17 +861,6 @@
                     "action": "Thumbstick",
                     "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "5481b572-36ad-4cd6-a72b-feeec055620b",
-                    "path": "<XRController>{LeftHand}/primaryButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "LeftXButton",
-                    "isComposite": false,
-                    "isPartOfComposite": false
                 }
             ]
         },
@@ -995,6 +975,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "PrimaryButton",
+                    "type": "Button",
+                    "id": "14e247fe-e831-4d59-8f12-b8f79c46e78a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1305,6 +1294,17 @@
                     "action": "Translate Manipulation",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "df0e5254-8d18-4b88-a49c-3226a64e9fe2",
+                    "path": "<XRController>{LeftHand}/primaryButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PrimaryButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -1362,15 +1362,6 @@
                     "type": "Button",
                     "id": "c5a6d766-d487-42ae-b293-da4749469e18",
                     "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "LeftXButton",
-                    "type": "Button",
-                    "id": "27b393cd-5d23-48c7-b905-71c08eeb6228",
-                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -1440,17 +1431,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Snap Turn",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "2066b36e-559b-41e4-8227-070d86b4b6e2",
-                    "path": "<XRController>{LeftHand}/{PrimaryButton}",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "LeftXButton",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
