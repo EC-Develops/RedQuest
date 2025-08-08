@@ -4732,10 +4732,10 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000282523}
-  serializedVersion: 4
+  serializedVersion: 5
   m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -5182,7 +5182,7 @@ MonoBehaviour:
   spriteAnimator: {fileID: 1093216217}
   spriteTransform: {fileID: 1093216215}
   playerTransform: {fileID: 1000282531}
-  walkSpeed: 2
+  walkSpeed: 0.5
   stopDistance: 2
   idleBooleanName: Idle_Bool
   walkBooleanName: Walking_Bool
@@ -5192,9 +5192,9 @@ MonoBehaviour:
   silenceCheckInterval: 0.1
   enablePipeline: 1
   debugOutput: 1
-  enable_GPT: 1
-  apiKey: ENTER-KEY-HERE
-  model: gpt-4o-mini
+  enable_Gemini: 1
+  apiKey: AIzaSyC5fKn-ynoWPrwfOVS2jb1ypAVWjKCc6Qs
+  model: gemini-2.5-flash
 --- !u!95 &1093216217
 Animator:
   serializedVersion: 7
@@ -5204,7 +5204,7 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1093216214}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
+  m_Avatar: {fileID: 9000000, guid: fadead254b8bb1b4e9406290a47642e6, type: 3}
   m_Controller: {fileID: 9100000, guid: 118c76d3359314faaa17aa01107d0209, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0

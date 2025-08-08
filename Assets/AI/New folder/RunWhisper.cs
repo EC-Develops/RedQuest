@@ -11,8 +11,8 @@ public class RunWhisperMicrophone : MonoBehaviour
 {
     [Header("Audio Settings")]
     public int sampleRate = 16000;
-    public float recordingDuration = 10.0f; // Duration to record before transcribing
-    public bool continuousMode = false; // If true, continuously transcribe in chunks
+    public float recordingDuration = 10.0f; 
+    public bool continuousMode = false; 
     
     [Header("Model Assets")]
     public ModelAsset audioDecoder1, audioDecoder2;
@@ -26,11 +26,11 @@ public class RunWhisperMicrophone : MonoBehaviour
     public List<float> recordingBuffer { get; private set; }
 
     
-    // Workers
+    
     Worker decoder1, decoder2, encoder, spectrogram;
     Worker argmax;
     
-    // Audio processing
+    
     private AudioClip micClip;
     private Queue<float> audioBuffer;
     private bool isRecording = false;
@@ -38,11 +38,11 @@ public class RunWhisperMicrophone : MonoBehaviour
     private float recordingStartTime;
     private int lastMicPosition = 0;
     
-    // Whisper processing
-    const int maxTokens = 100;
-    const int maxSamples = 30 * 16000; // 30 seconds at 16kHz
     
-    // Special tokens
+    const int maxTokens = 100;
+    const int maxSamples = 30 * 16000; 
+    
+    
     const int END_OF_TEXT = 50257;
     const int START_OF_TRANSCRIPT = 50258;
     const int ENGLISH = 50259;
@@ -53,7 +53,7 @@ public class RunWhisperMicrophone : MonoBehaviour
     const int NO_TIME_STAMPS = 50363;
     const int START_TIME = 50364;
     
-    // Transcription state
+    
     int tokenCount = 0;
     NativeArray<int> outputTokens;
     int[] whiteSpaceCharacters = new int[256];
@@ -61,7 +61,7 @@ public class RunWhisperMicrophone : MonoBehaviour
     string outputString = "";
     bool transcribe = false;
     
-    // Tensors
+    
     Tensor<float> encodedAudio;
     Tensor<int> tokensTensor;
     Tensor<int> lastTokenTensor;
@@ -87,7 +87,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         decoder1 = new Worker(ModelLoader.Load(audioDecoder1), BackendType.GPUCompute);
         decoder2 = new Worker(ModelLoader.Load(audioDecoder2), BackendType.GPUCompute);
         
-        // Create argmax model
+        
         FunctionalGraph graph = new FunctionalGraph();
         var input = graph.AddInput(DataType.Float, new DynamicTensorShape(1, 1, 51865));
         var amax = Functional.ArgMax(input, -1, false);
@@ -107,8 +107,8 @@ public class RunWhisperMicrophone : MonoBehaviour
         recordingBuffer = new List<float>();
 
         
-        // Start microphone
-        micClip = Microphone.Start(null, true, 30, sampleRate); // 30 second buffer
+        
+        micClip = Microphone.Start(null, true, 30, sampleRate); 
         
         if (micClip == null)
         {
@@ -118,7 +118,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         
         Debug.Log($"Microphone started at {sampleRate}Hz");
         
-        // Wait a frame for microphone to start
+        
         StartCoroutine(WaitForMicrophoneStart());
     }
 
@@ -142,13 +142,13 @@ public class RunWhisperMicrophone : MonoBehaviour
             StopRecording();
         }
         
-        // Auto-stop recording after duration
+        
         if (isRecording && Time.time - recordingStartTime >= recordingDuration)
         {
             StopRecording();
         }
         
-        // Continuous mode
+        
         if (continuousMode && !isRecording && !isTranscribing)
         {
             StartRecording();
@@ -163,11 +163,11 @@ public class RunWhisperMicrophone : MonoBehaviour
         isRecording = true;
         recordingStartTime = Time.time;
         
-        // Clear previous recording
+        
         recordingBuffer.Clear();
         outputString = "";
         
-        // Reset position tracking
+        
         lastMicPosition = Microphone.GetPosition(null);
     }
 
@@ -178,7 +178,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         Debug.Log("=== Stopping Recording ===");
         isRecording = false;
         
-        // Capture any remaining audio
+        
         CaptureNewAudioData();
         
         if (recordingBuffer.Count > 0)
@@ -205,58 +205,58 @@ public class RunWhisperMicrophone : MonoBehaviour
         
         int currentMicPosition = Microphone.GetPosition(null);
         
-        // Handle circular buffer wraparound
+        
         int samplesToRead = 0;
         if (currentMicPosition > lastMicPosition)
         {
-            // Normal case: no wraparound
+            
             samplesToRead = currentMicPosition - lastMicPosition;
         }
         else if (currentMicPosition < lastMicPosition)
         {
-            // Wraparound occurred
+            
             samplesToRead = (micClip.samples - lastMicPosition) + currentMicPosition;
         }
         else
         {
-            // No new data
+            
             return;
         }
         
         if (samplesToRead <= 0) return;
         
-        // Read the new audio data
+        
         float[] newAudioData = new float[samplesToRead];
         
         if (currentMicPosition > lastMicPosition)
         {
-            // Simple case: read continuous block
+            
             micClip.GetData(newAudioData, lastMicPosition);
         }
         else
         {
-            // Wraparound case: read in two parts
+            
             int firstPartSize = micClip.samples - lastMicPosition;
             int secondPartSize = currentMicPosition;
             
             float[] tempBuffer = new float[micClip.samples];
             micClip.GetData(tempBuffer, 0);
             
-            // Copy first part (from lastMicPosition to end)
+            
             Array.Copy(tempBuffer, lastMicPosition, newAudioData, 0, firstPartSize);
             
-            // Copy second part (from start to currentMicPosition)
+            
             if (secondPartSize > 0)
             {
                 Array.Copy(tempBuffer, 0, newAudioData, firstPartSize, secondPartSize);
             }
         }
         
-        // Add new samples to recording buffer
+        
         recordingBuffer.AddRange(newAudioData);
         
-        // Limit buffer size to prevent memory issues
-        int maxRecordingSamples = (int)(recordingDuration * sampleRate * 2); // 2x duration as safety
+        
+        int maxRecordingSamples = (int)(recordingDuration * sampleRate * 2); 
         if (recordingBuffer.Count > maxRecordingSamples)
         {
             int excessSamples = recordingBuffer.Count - maxRecordingSamples;
@@ -273,29 +273,29 @@ public class RunWhisperMicrophone : MonoBehaviour
         
         Debug.Log($"Preparing {sampleCount} samples from recording buffer of {recordingBuffer.Count} samples");
         
-        // Copy recording buffer to array
+        
         for (int i = 0; i < sampleCount; i++)
         {
             audioData[i] = recordingBuffer[i];
         }
         
-        // Pad with zeros if necessary
+        
         for (int i = sampleCount; i < maxSamples; i++)
         {
             audioData[i] = 0.0f;
         }
         
-        // Optional: Apply some basic audio preprocessing
-        // Normalize audio to prevent clipping
+        
+        
         float maxAmplitude = 0f;
         for (int i = 0; i < sampleCount; i++)
         {
             maxAmplitude = Mathf.Max(maxAmplitude, Mathf.Abs(audioData[i]));
         }
         
-        if (maxAmplitude > 0.001f) // Avoid division by zero
+        if (maxAmplitude > 0.001f) 
         {
-            float normalizationFactor = 0.95f / maxAmplitude; // Leave some headroom
+            float normalizationFactor = 0.95f / maxAmplitude; 
             for (int i = 0; i < sampleCount; i++)
             {
                 audioData[i] *= normalizationFactor;
@@ -317,26 +317,26 @@ public class RunWhisperMicrophone : MonoBehaviour
         Debug.Log($"=== Starting Transcription === Buffer size: {audioBuffer.Count} samples");
         isTranscribing = true;
         
-        // Prepare audio data
+        
         yield return StartCoroutine(PrepareAudioForTranscription());
         
-        // Encode audio
+        
         yield return StartCoroutine(EncodeAudio());
         
-        // Setup transcription tokens
+        
         SetupTranscriptionTokens();
         
-        // Run transcription loop
+        
         yield return StartCoroutine(RunTranscriptionLoop());
         
-        // Complete transcription
+        
         CompleteTranscription();
         
         isTranscribing = false;
         
         if (continuousMode && !isRecording)
         {
-            yield return new WaitForSeconds(0.5f); // Brief pause between continuous transcriptions
+            yield return new WaitForSeconds(0.5f); 
         }
     }
     
@@ -344,7 +344,7 @@ public class RunWhisperMicrophone : MonoBehaviour
     {
         Debug.Log("=== Encoding Audio ===");
         
-        // Generate spectrogram
+        
         spectrogram.Schedule(audioInput);
         
         bool spectrogramComplete = false;
@@ -360,7 +360,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         
         var logmel = spectrogram.PeekOutput() as Tensor<float>;
         
-        // Encode audio features
+        
         encoder.Schedule(logmel);
         
         bool encodingComplete = false;
@@ -380,7 +380,7 @@ public class RunWhisperMicrophone : MonoBehaviour
     
     void SetupTranscriptionTokens()
     {
-        // Setup initial tokens
+        
         outputTokens[0] = START_OF_TRANSCRIPT;
         outputTokens[1] = ENGLISH;
         outputTokens[2] = translateToEnglish ? TRANSLATE : TRANSCRIBE;
@@ -389,10 +389,10 @@ public class RunWhisperMicrophone : MonoBehaviour
         
         if (!includeTimestamps)
         {
-            // Note: NO_TIME_STAMPS will be added as the first generated token
+            
         }
         
-        // Create tensors
+        
         tokensTensor = new Tensor<int>(new TensorShape(1, maxTokens));
         ComputeTensorData.Pin(tokensTensor);
         tokensTensor.Reshape(new TensorShape(1, tokenCount));
@@ -419,7 +419,7 @@ public class RunWhisperMicrophone : MonoBehaviour
 
     IEnumerator InferenceStep()
     {
-        // First decoder pass
+        
         decoder1.SetInput("input_ids", tokensTensor);
         decoder1.SetInput("encoder_hidden_states", encodedAudio);
         decoder1.Schedule();
@@ -434,7 +434,7 @@ public class RunWhisperMicrophone : MonoBehaviour
             }
         }
 
-        // Get all the key-value pairs from decoder1
+        
         var past_key_values_0_decoder_key = decoder1.PeekOutput("present.0.decoder.key") as Tensor<float>;
         var past_key_values_0_decoder_value = decoder1.PeekOutput("present.0.decoder.value") as Tensor<float>;
         var past_key_values_1_decoder_key = decoder1.PeekOutput("present.1.decoder.key") as Tensor<float>;
@@ -453,7 +453,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         var past_key_values_3_encoder_key = decoder1.PeekOutput("present.3.encoder.key") as Tensor<float>;
         var past_key_values_3_encoder_value = decoder1.PeekOutput("present.3.encoder.value") as Tensor<float>;
 
-        // Second decoder pass
+        
         decoder2.SetInput("input_ids", lastTokenTensor);
         decoder2.SetInput("past_key_values.0.decoder.key", past_key_values_0_decoder_key);
         decoder2.SetInput("past_key_values.0.decoder.value", past_key_values_0_decoder_value);
@@ -498,15 +498,15 @@ public class RunWhisperMicrophone : MonoBehaviour
             }
         }
 
-        // FIX: Use ReadbackAndClone() to read tensor data from GPU
+        
         var t_Token_GPU = argmax.PeekOutput() as Tensor<int>;
         var t_Token = t_Token_GPU.ReadbackAndClone();
         int index = t_Token[0];
 
-        // Dispose the cloned tensor to avoid memory leaks
+        
         t_Token.Dispose();
 
-        // Update tokens
+        
         outputTokens[tokenCount] = lastToken[0];
         lastToken[0] = index;
         tokenCount++;
@@ -530,7 +530,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         Debug.Log($"=== TRANSCRIPTION COMPLETE === Result: '{outputString.Trim()}'");
         OnTranscriptionComplete?.Invoke(outputString.Trim());
         
-        // Cleanup transcription tensors
+        
         if (tokensTensor != null)
         {
             tokensTensor.Dispose();
@@ -550,7 +550,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         }
     }
     
-    // Tokenizer and text processing methods (unchanged from original)
+    
     void GetTokens()
     {
         var vocab = JsonConvert.DeserializeObject<Dictionary<string, int>>(vocabAsset.text);
@@ -590,7 +590,7 @@ public class RunWhisperMicrophone : MonoBehaviour
         return !(('!' <= c && c <= '~') || ('¡' <= c && c <= '¬') || ('®' <= c && c <= 'ÿ'));
     }
     
-    // UI and status
+    
     void OnGUI()
     {
         GUILayout.BeginArea(new Rect(10, 10, 600, 400));
@@ -606,7 +606,7 @@ public class RunWhisperMicrophone : MonoBehaviour
             float recordingProgress = (Time.time - recordingStartTime) / recordingDuration;
             GUILayout.Label($"Recording Progress: {recordingProgress * 100:F1}%");
             
-            // Show audio level indicator
+            
             if (recordingBuffer != null && recordingBuffer.Count > 0)
             {
                 float recentAmplitude = 0f;
@@ -658,26 +658,26 @@ public class RunWhisperMicrophone : MonoBehaviour
     }
     void OnDestroy()
     {
-        // Cleanup workers
+        
         decoder1?.Dispose();
         decoder2?.Dispose();
         encoder?.Dispose();
         spectrogram?.Dispose();
         argmax?.Dispose();
         
-        // Cleanup tensors
+        
         audioInput?.Dispose();
         lastTokenTensor?.Dispose();
         tokensTensor?.Dispose();
         encodedAudio?.Dispose();
         
-        // Cleanup native arrays
+        
         if (outputTokens.IsCreated)
             outputTokens.Dispose();
         if (lastToken.IsCreated)
             lastToken.Dispose();
         
-        // Stop microphone
+        
         Microphone.End(null);
     }
 }

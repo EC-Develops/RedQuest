@@ -83,14 +83,12 @@ public class RunJets : MonoBehaviour
                 dict.Add(key, s.Substring(key.Length + 2));
             }
         }
-        // Add codes for punctuation to the dictionary
         dict.Add(",", ",");
         dict.Add(".", ".");
         dict.Add("!", "!");
         dict.Add("?", "?");
         dict.Add("\"", "\"");
-        // You could add extra word pronunciations here e.g.
-        //dict.Add("somenewword","[phonemes]");
+
     }
 
     public string ExpandNumbers(string text)
@@ -121,10 +119,6 @@ public class RunJets : MonoBehaviour
         return output;
     }
 
-    //Decode the word into phenomes by looking for the longest word in the dictionary that matches
-    //the first part of the word and so on.
-    //This works fairly well but could be improved. The original paper had a model that
-    //dealt with guessing the phonemes of words
     public string DecodeWord(string word)
     {
         string output = "";

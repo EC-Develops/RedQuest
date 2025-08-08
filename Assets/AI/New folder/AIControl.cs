@@ -34,7 +34,7 @@ public class AIControl : MonoBehaviour
     [Header("Pipeline Settings")]
     public bool enablePipeline = true;
     public bool debugOutput = true;
-    public bool enable_GPT = false;
+    public bool enable_Gemini = false;
     public string apiKey = "API_KEY_HERE";
     public string model = "model";
 
@@ -51,6 +51,7 @@ public class AIControl : MonoBehaviour
     private float lastSilenceCheckTime = 0f;
     private float lastAmplitude = 0f;
 
+    private AnimationState currentAnimationState = AnimationState.Idle;
 
     private enum AnimationState
     {
@@ -118,6 +119,7 @@ public class AIControl : MonoBehaviour
         whisperMicrophone.continuousMode = false;
 
 
+        currentAnimationState = AnimationState.Idle; 
         SetAnimationState(AnimationState.Idle);
 
         Debug.Log("AIControl initialized successfully!");
@@ -366,90 +368,130 @@ public class AIControl : MonoBehaviour
             return;
         }
 
-        if (enable_GPT)
+        if (enable_Gemini)
         {
-            StartCoroutine(GetGPTResponse(text, (gptResponse) => {
-                StartCoroutine(RunTextToSpeech(gptResponse));
+            StartCoroutine(GetGeminiResponse(text, (geminiResponse) => {
+                StartCoroutine(RunTextToSpeech(geminiResponse));
             }));
         }
         else
         {
-            string actualtext = "This is a test";
+            string actualtext = "Hello, I am Victor E. Please repeat your question and also enable large language model processing.";
             StartCoroutine(RunTextToSpeech(actualtext));
         }
     }
-    IEnumerator GetGPTResponse(string userPrompt, System.Action<string> callback)
+    IEnumerator GetGeminiResponse(string userPrompt, System.Action<string> callback)
     {
-        string endpoint = "https://api.openai.com/v1/chat/completions";
+        // Gemini API endpoint
+        string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
-        string jsonBody = JsonUtility.ToJson(new ChatRequest
+        // Create the request body for Gemini API
+        GeminiRequest geminiRequest = new GeminiRequest
         {
-            model = model,
-            messages = new[]
+            contents = new GeminiContent[]
             {
-                new Message { role = "user", content = "You are a knowledgeable AI helper named 'Victor E'. The user is playing 'MindTiles', a game where they must jump on flooring which lights up, jumping on any other tile causes them to restart; in a short sentence, please respond to this: " + userPrompt }
+                new GeminiContent
+                {
+                    parts = new GeminiPart[]
+                    {
+                        new GeminiPart
+                        {
+                            text = "You are a knowledgeable AI helper named 'Victor E'. The user is playing 'MindTiles', a game where they must jump on flooring which lights up, jumping on any other tile causes them to restart; in a short sentence, please respond to this: " + userPrompt
+                        }
+                    }
+                }
             }
-        });
+        };
 
+        string jsonBody = JsonUtility.ToJson(geminiRequest);
         byte[] postData = Encoding.UTF8.GetBytes(jsonBody);
 
         UnityWebRequest request = new UnityWebRequest(endpoint, "POST");
         request.uploadHandler = new UploadHandlerRaw(postData);
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", "Bearer " + apiKey);
 
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)
         {
-            ChatResponse response = JsonUtility.FromJson<ChatResponse>(request.downloadHandler.text);
-            string gptText = response.choices[0].message.content;
-            
-            if (debugOutput)
-                Debug.Log("GPT Response: " + gptText);
+            try
+            {
+                GeminiResponse response = JsonUtility.FromJson<GeminiResponse>(request.downloadHandler.text);
                 
-            callback(gptText);
+                if (response.candidates != null && response.candidates.Length > 0 &&
+                    response.candidates[0].content.parts != null && response.candidates[0].content.parts.Length > 0)
+                {
+                    string geminiText = response.candidates[0].content.parts[0].text;
+                    
+                    if (debugOutput)
+                        Debug.Log("Gemini Response: " + geminiText);
+                        
+                    callback(geminiText);
+                }
+                else
+                {
+                    Debug.LogError("Gemini Error: Invalid response structure");
+                    callback("Sorry, I couldn't process that.");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Gemini Parse Error: " + e.Message);
+                callback("Sorry, I couldn't process that.");
+            }
         }
         else
         {
-            Debug.LogError("GPT Error: " + request.error);
+            Debug.LogError("Gemini Error: " + request.error);
             callback("Sorry, I couldn't process that.");
         }
     }
+
+
+
+
+
     IEnumerator RunTextToSpeech(string text)
     {
-
+        // Set talking animation state
+        SetAnimationState(AnimationState.Talk);
+        
+        // Set the text for TTS
         textToSpeech.inputText = text;
 
-
+        // Start TTS
         textToSpeech.TextToSpeech();
-
 
         yield return null;
 
-
-        yield return new WaitForSeconds(1.0f);
+        // Wait longer for TTS to complete - adjust this based on your TTS duration
+        // You might want to check if RunJets has a completion callback or property
+        float estimatedTTSTime = text.Length * 0.1f; // Rough estimate: 0.1 seconds per character
+        estimatedTTSTime = Mathf.Max(estimatedTTSTime, 2.0f); // Minimum 2 seconds
+        
+        yield return new WaitForSeconds(estimatedTTSTime);
 
         if (debugOutput)
             Debug.Log("AIControl: TTS processing completed.");
 
-
+        // Now cleanup and return to idle
         CleanupAndReturnToIdle();
     }
-
     private void CleanupAndReturnToIdle()
     {
-
+        // Clear audio resources first
         ClearAudioResources();
 
-
-        SetAnimationState(AnimationState.Idle);
+        // Reset flags
         isTalking = false;
         isProcessing = false;
-
-
-        System.GC.Collect();
+        
+        // Only set to idle if we're not walking
+        if (!isWalkingToPlayer && currentAnimationState != AnimationState.Idle)
+        {
+            SetAnimationState(AnimationState.Idle);
+        }
     }
 
     private void ClearAudioResources()
@@ -477,28 +519,45 @@ public class AIControl : MonoBehaviour
     private void SetAnimationState(AnimationState state)
     {
         if (spriteAnimator == null) return;
+        
+        // Don't change state if we're already in the target state
+        if (currentAnimationState == state) 
+        {
+            if (debugOutput)
+                Debug.Log($"AIControl: Already in {state} state, skipping animation update");
+            return;
+        }
 
+        if (debugOutput)
+            Debug.Log($"AIControl: Animation state changing from {currentAnimationState} to {state}");
 
-        spriteAnimator.SetBool(idleBooleanName, true);
+        // Reset all animation booleans to false first
+        spriteAnimator.SetBool(idleBooleanName, false);
         spriteAnimator.SetBool(walkBooleanName, false);
         spriteAnimator.SetBool(talkBooleanName, false);
 
-
+        // Then set only the desired state to true
         switch (state)
         {
             case AnimationState.Idle:
                 spriteAnimator.SetBool(idleBooleanName, true);
+                spriteAnimator.SetBool(walkBooleanName, false);
+                spriteAnimator.SetBool(talkBooleanName, false);
                 break;
             case AnimationState.Walk:
                 spriteAnimator.SetBool(walkBooleanName, true);
+                spriteAnimator.SetBool(idleBooleanName, false);
                 break;
             case AnimationState.Talk:
                 spriteAnimator.SetBool(talkBooleanName, true);
+                spriteAnimator.SetBool(idleBooleanName, false);
                 break;
         }
 
+        currentAnimationState = state;
+        
         if (debugOutput)
-            Debug.Log($"AIControl: Animation state changed to {state}");
+            Debug.Log($"AIControl: Animation parameters updated - Idle: {state == AnimationState.Idle}, Walk: {state == AnimationState.Walk}, Talk: {state == AnimationState.Talk}");
     }
 
     private void StartWalkingToPlayer()
@@ -520,15 +579,16 @@ public class AIControl : MonoBehaviour
     private void StopWalkingToPlayer()
     {
         isWalkingToPlayer = false;
-
-        spriteAnimator.SetBool(idleBooleanName, true);
-        spriteAnimator.SetBool(walkBooleanName, false);
-        spriteAnimator.SetBool(talkBooleanName, false);
+        
+        // Only set to idle if we're not currently talking
+        if (!isTalking && currentAnimationState != AnimationState.Idle)
+        {
+            SetAnimationState(AnimationState.Idle);
+        }
 
         if (debugOutput)
             Debug.Log("AIControl: Stopped walking toward player.");
     }
-
 
     public void SetSilenceThreshold(float threshold)
     {
@@ -655,27 +715,31 @@ public class AIControl : MonoBehaviour
 }
 
 [System.Serializable]
-public class Message
+public class GeminiPart
 {
-    public string role;
-    public string content;
+    public string text;
 }
 
 [System.Serializable]
-public class ChatRequest
+public class GeminiContent
 {
-    public string model;
-    public Message[] messages;
+    public GeminiPart[] parts;
 }
 
 [System.Serializable]
-public class Choice
+public class GeminiRequest
 {
-    public Message message;
+    public GeminiContent[] contents;
 }
 
 [System.Serializable]
-public class ChatResponse
+public class GeminiCandidate
 {
-    public Choice[] choices;
+    public GeminiContent content;
+}
+
+[System.Serializable]
+public class GeminiResponse
+{
+    public GeminiCandidate[] candidates;
 }
