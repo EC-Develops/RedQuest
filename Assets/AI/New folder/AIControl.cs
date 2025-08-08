@@ -547,6 +547,7 @@ public class AIControl : MonoBehaviour
             case AnimationState.Walk:
                 spriteAnimator.SetBool(walkBooleanName, true);
                 spriteAnimator.SetBool(idleBooleanName, false);
+                spriteAnimator.SetBool(talkBooleanName, false);
                 break;
             case AnimationState.Talk:
                 spriteAnimator.SetBool(talkBooleanName, true);
@@ -565,7 +566,7 @@ public class AIControl : MonoBehaviour
         if (playerTransform == null)
         {
             if (debugOutput)
-                Debug.LogWarning("AIControl: Player transform not found, cannot walk to player.");
+                Debug.LogWarning(" 🔴🔴🔴 AIControl: Player transform not found, cannot walk to player.");
             return;
         }
 
@@ -573,7 +574,7 @@ public class AIControl : MonoBehaviour
         SetAnimationState(AnimationState.Walk);
 
         if (debugOutput)
-            Debug.Log("AIControl: Started walking toward player.");
+            Debug.Log(" 🔴🔴🔴 AIControl: Started walking toward player.");
     }
 
     private void StopWalkingToPlayer()

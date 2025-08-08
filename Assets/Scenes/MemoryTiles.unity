@@ -5192,7 +5192,7 @@ MonoBehaviour:
   silenceCheckInterval: 0.1
   enablePipeline: 1
   debugOutput: 1
-  enable_Gemini: 1
+  enable_Gemini: 0
   apiKey: AIzaSyC5fKn-ynoWPrwfOVS2jb1ypAVWjKCc6Qs
   model: gemini-2.5-flash
 --- !u!95 &1093216217
