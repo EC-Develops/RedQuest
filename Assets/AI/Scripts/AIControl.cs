@@ -385,7 +385,6 @@ public class AIControl : MonoBehaviour
         // Gemini API endpoint
         string endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
-        // Create the request body for Gemini API
         GeminiRequest geminiRequest = new GeminiRequest
         {
             contents = new GeminiContent[]
@@ -457,30 +456,25 @@ public class AIControl : MonoBehaviour
         // Set talking animation state
         SetAnimationState(AnimationState.Talk);
         
-        // Set the text for TTS
         textToSpeech.inputText = text;
 
-        // Start TTS
         textToSpeech.TextToSpeech();
 
         yield return null;
 
-        // Wait longer for TTS to complete - adjust this based on your TTS duration
-        // You might want to check if RunJets has a completion callback or property
-        float estimatedTTSTime = text.Length * 0.1f; // Rough estimate: 0.1 seconds per character
-        estimatedTTSTime = Mathf.Max(estimatedTTSTime, 2.0f); // Minimum 2 seconds
+
+        float estimatedTTSTime = text.Length * 0.1f; 
+        estimatedTTSTime = Mathf.Max(estimatedTTSTime, 2.0f); 
         
         yield return new WaitForSeconds(estimatedTTSTime);
 
         if (debugOutput)
             Debug.Log("AIControl: TTS processing completed.");
 
-        // Now cleanup and return to idle
         CleanupAndReturnToIdle();
     }
     private void CleanupAndReturnToIdle()
     {
-        // Clear audio resources first
         ClearAudioResources();
 
         // Reset flags
@@ -581,7 +575,6 @@ public class AIControl : MonoBehaviour
     {
         isWalkingToPlayer = false;
         
-        // Only set to idle if we're not currently talking
         if (!isTalking && currentAnimationState != AnimationState.Idle)
         {
             SetAnimationState(AnimationState.Idle);
